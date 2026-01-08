@@ -13,12 +13,21 @@ io.on('connection', (socket) => {
         io.emit('updateUserList', Object.values(users));
     });
 
-    socket.on('chat message', (data) => {
-        if (users[socket.id]) {
-            io.emit('chat message', { user: users[socket.id].username, msg: data.msg, avatar: users[socket.id].avatar });
-        }
+   socket.on('chat message', (data) => {
+    const messages = document.getElementById('messages');
+    const isMe = data.user === myData.username;
+    
+    // Naya message aane par sound bajao (agar message mera nahi hai toh)
+    if (!isMe) {
+        document.getElementById('notif-sound').play();
     });
 
+    const div = document.createElement('div');
+    div.className = `msg-row ${isMe ? 'sent' : 'received'}`;
+    div.innerHTML = `<div class="msg-bubble"><b>${isMe ? 'You' : data.user}:</b><br>${data.msg}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+});
     socket.on('disconnect', () => {
         delete users[socket.id];
         io.emit('updateUserList', Object.values(users));
@@ -27,3 +36,4 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => { console.log('Server Live!'); });
+
